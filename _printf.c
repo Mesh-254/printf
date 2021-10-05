@@ -1,46 +1,77 @@
 #include "main.h"
+#include <unistd.h>
+#include <stdio.h>
 /**
- * _printf - prints anything
- * @format: the format string
+* buffer_print - print given buffer to stdout
+* @buffer: buffer to print
+* @nbytes: number of bytes to print
+* Return: nbytes
+*/
+int buffer_print(char buffer[], unsigned int nbytes)
+{
+write(1, buffer, nbytes);
+return (nbytes);
+}
+/**
+ * buffer_add - adds a string to buffer
+ * @buffer: buffer to fill
+ * @str: str to add
+ * @buffer_pos: pointer to buffer first empty position
  *
- * Return: number of bytes printed
+ * Return: if buffer filled and emptyed return number of printed char
+ * else 0
+ */
+int buffer_add(char buffer[], char *str, unsigned int *buffer_pos)
+{
+int i = 0;
+unsigned int count = 0, pos = *buffer_pos, size = BUFFER_SIZE;
+while (str && str[i])
+{
+if (pos == size)
+{
+count += buffer_print(buffer, pos);
+pos = 0;
+}
+buffer[pos++] = str[i++];
+}
+*buffer_pos = pos;
+return (count);
+}
+/**
+ * _printf - produces output according to a format
+ * @format: character string
+ *
+ * Return: the number of characters printed excluding the null byte
+ * used to end output to strings
  */
 int _printf(const char *format, ...)
 {
-int sum = 0;
 va_list ap;
-char *p, *start;
-params_t params = PARAMS_INIT;
+unsigned int i = 0, buffer_pos = 0, count = 0;
+char *res_str, *aux, buffer[BUFFER_SIZE];
+if (!format || !format[0])
+return (-1);
 va_start(ap, format);
-if (!format || (format[0] == '%' && !format[1]))
-return (-1);
-if (format[0] == '%' && format[1] == ' ' && !format[2])
-return (-1);
-for (p = (char *)format; *p; p++)
+aux = malloc(sizeof(char) * 2);
+while (format && format[i])
 {
-init_params(&params, ap)
-if (*p != '%')
+if (format[i] == '%')
 {
-sum += _putchar(*p);
-continue;
+res_str = treat_format(format, &i, ap);
+count += buffer_add(buffer, res_str, &buffer_pos);
+free(res_str);
 }
-start = p;
-p++;
-while (get_flag(p, &params)) /* while char at p is flag char */
-{
-p++; /* next char */
-}
-p = get_width(p, &params, ap);
-p = get_precision(p, &params, ap);
-if (get_modifier(p, &params))
-p++;
-if (!get_specifier(p))
-sum += print_from_to(start, p,
-params.l_modifier || params.h_modifier ? p - 1 : 0);
 else
-sum += get_print_func(p, ap, &params);
+{
+aux[0] = format[i++];
+aux[1] = '\0';
+count += buffer_add(buffer, aux, &buffer_pos);
 }
-_putchar(BUF_FLUSH);
+}
+count += buffer_print(buffer, buffer_pos);
+free(aux);
 va_end(ap);
-return (sum);
+if (!count)
+count = -1;
+return (count);
 }

@@ -1,236 +1,140 @@
-#ifndef _PRINTF_H
+#ifndef _FUNCTION_PRINTF_H_
 
-#define _PRINTF_H
-
-
+#define _FUNCTION_PRINTF_H_
 
 #include <stdarg.h>
 
-#include <stdio.h>
-
-#include <unistd.h>
-
-#include <limits.h>
-
 #include <stdlib.h>
 
-
-
-#define OUTPUT_BUF_SIZE 1024
-
-#define BUF_FLUSH -1
+#include <stddef.h>
 
 
 
-#define FIELD_BUF_SIZE 50
-
-
-
-#define NULL_STRING "(null)"
-
-
-
-#define PARAMS_INIT {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
-
-
-
-#define CONVERT_LOWERCASE1
-
-#define CONVERT_UNSIGNED2
+#define BUFFER_SIZE 1024
 
 
 
 /**
 
- * struct parameters - parameters struct
+ * struct modifier - mofifier fields collection
 
- *
+ * @flags: flags field composed of ['0', ' ', '#', '+', '-']
 
- * @unsign: flag if unsigned value
+ * @width: width field, positive number
 
- *
+ * @precision: precision field positive number not including '.'
 
- * @plus_flag: on if plus_flag specified
+ * or -1 for '*'
 
- * @space_flag: on if hashtag_flag specified
+ * @length: length field string composed of ['h', 'l']
 
- * @hashtag_flag: on if _flag specified
+ * @specifier: specifier character can one of
 
- * @zero_flag: on if _flag specified
-
- * @minus_flag: on if _flag specified
-
- *
-
- * @width: field width specified
-
- * @precision: field precision specified
-
- *
-
- * @h_modifier: on if h_modifier is specified
-
- * @l_modifier: on if l_modifier is specified
+ * ['c', 's', '%', 'd', 'i', 'b', 'u', 'o', 'x', 'X', 'S', 'p', 'r', 'R']
 
  *
 
  */
 
-typedef struct parameters
+typedef struct modifier
 
 {
   
-  unsigned int unsign: 1;
+  char *flags;
   
-
+  int width;
   
-  unsigned int plus_flag: 1;
+  int precision;
   
-  unsigned int space_flag: 1;
+  char *length;
   
-  unsigned int hashtag_flag: 1;
+  char specifier;
   
-  unsigned int zero_flag: 1;
-  
-  unsigned int minus_flag: 1;
-  
-
-  
-  unsigned int width;
-  
-  unsigned int precision;
-  
-
-  
-  unsigned int h_modifier: 1;
-  
-  unsigned int l_modifier: 1;
-  
-} params_t;
+} modifier_t;
 
 
 
-/**
+void *_realloc(void *ptr, unsigned int, unsigned int);
 
- * struct specifier - Struct token
+int _putchar(char c);
 
- *
+char *print_binary(modifier_t *, va_list);
 
- * @specifier: format token
+char *print_unsigned_int(modifier_t *, va_list);
 
- * @f: The function associated
+char *print_octal(modifier_t *, va_list);
 
- */
+char *print_hex(modifier_t *, va_list);
 
-typedef struct specifier
+char *print_char(modifier_t *, va_list ap);
 
-{
-  
-  char *specifier;
-  
-  int (*f)(va_list, params_t *);
-  
-} specifier_t;
+char *print_int(modifier_t *, va_list ap);
 
+char *print_string(modifier_t *modif, va_list ap);
 
+char *print_rev(modifier_t *, va_list ap);
 
-/* _put.c module */
+char *print_big_s(modifier_t *, va_list);
 
-int _puts(char *str);
+char *print_pointer(modifier_t *, va_list);
 
-int _putchar(int c);
-
-
-
-/* print_functions.c module */
-
-int print_char(va_list ap, params_t *params);
-
-int print_int(va_list ap, params_t *params);
-
-int print_string(va_list ap, params_t *params);
-
-int print_percent(va_list ap, params_t *params);
-
-int print_S(va_list ap, params_t *params);
-
-
-
-/* number.c module */
-
-char *convert(long int num, int base, int flags, params_t *params);
-
-int print_unsigned(va_list ap, params_t *params);
-
-int print_address(va_list ap, params_t *params);
-
-
-
-/* specifier.c module */
-
-int (*get_specifier(char *s))(va_list ap, params_t *params);
-
-int get_print_func(char *s, va_list ap, params_t *params);
-
-int get_flag(char *s, params_t *params);
-
-int get_modifier(char *s, params_t *params);
-
-char *get_width(char *s, params_t *params, va_list ap);
-
-
-
-/* convert_number.c module */
-
-int print_hex(va_list ap, params_t *params);
-
-int print_HEX(va_list ap, params_t *params);
-
-int print_binary(va_list ap, params_t *params);
-
-int print_octal(va_list ap, params_t *params);
-
-
-
-/* simple_printers.c module */
-
-int print_from_to(char *start, char *stop, char *except);
-
-int print_rev(va_list ap, params_t *params);
-
-int print_rot13(va_list ap, params_t *params);
-
-
-
-/* print_number.c module */
-
-int _isdigit(int c);
+char *rot13(char *s);
 
 int _strlen(char *s);
 
-int print_number(char *str, params_t *params);
-
-int print_number_right_shift(char *str, params_t *params);
-
-int print_number_left_shift(char *str, params_t *params);
+char *print_rot(modifier_t *, va_list ap);
 
 
 
-/* params.c module */
+void free_modifier(modifier_t *);
 
-void init_params(params_t *params, va_list ap);
+char *get_flags(const char *, unsigned int *);
 
+int get_width(const char *, unsigned int *);
 
+int get_precision(const char *, unsigned int *);
 
-/* string_fields.c modoule */
+char *get_length(const char *, unsigned int *);
 
-char *get_precision(char *p, params_t *params, va_list ap);
+char get_specifier(const char *, unsigned int *);
 
+modifier_t *get_modifier(const char *, unsigned int *);
 
-
-/* _prinf.c module */
+char *treat_format(const char *, unsigned int *, va_list);
 
 int _printf(const char *format, ...);
+
+char *_strcpy(char *dest, char *src);
+
+void array_rev(char *arr, int len);
+
+int int_len(int num);
+
+char *ito(int n);
+
+char *reverse(char *s);
+
+
+
+/**
+
+ * struct print - multiple choice print
+
+ * @f: char Type of print
+
+ * @func: funct
+
+ */
+
+typedef struct print
+
+{
+  
+  char f;
+  
+  char *(*func)(modifier_t *, va_list);
+  
+} t_print;
 
 
 
